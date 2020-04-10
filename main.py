@@ -18,13 +18,13 @@ def main():
 	connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 	
 	while True:
-		raw_data, addr = connection.recvfrom(65536)
+		raw_data, addr = connection.recvfrom(65535)
 		dest_mac, src_mac, eth_proto, data = ethernet_frame(raw_data)
 		print('\nEthernet Frame: ')
 		print(TAB_1 + 'Destination: {}, Source: {}, Protocol: {}'.format(dest_mac, src_mac, eth_proto, data))
 
 		if eth_proto == 8:
-			(version, header_length, ttl, proto, src, target, data) = ipv4(data)
+			(version, header_length, ttl, proto, src, target, data) = ipv4_packet(data)
 			print(TAB_1 + 'IPv4 packets: ')
 			print(TAB_2 + 'Version: {}, Header length {}, TTL: {}'.format(version, header_length, ttl))
 			print(TAB_2 + 'Protocol: {}, Source: {}, Target: {}'.format(proto, src, target))
@@ -84,7 +84,7 @@ def icmp_packet(data):
 
 # TCP segment
 def tcp_segment(data):
-	(src_port, dest_port, sequence, acknowledgement, offset_reserved_flags) = struct.unpack('! H H L L H', data)
+	(src_port, dest_port, sequence, acknowledgement, offset_reserved_flags) = struct.unpack('! H H L L H', data[:14])
 	offset = (offset_reserved_flags >> 12) * 4
 	flag_urg = (offset_reserved_flags & 32) >> 5
 	flag_ack = (offset_reserved_flags & 16) >> 4
